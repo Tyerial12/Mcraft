@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#10141b" />
+  <rect x="28" y="28" width="456" height="456" rx="76" fill="#171d28" stroke="#323b49" stroke-width="10" />
+
+  <!-- Isometric Voxel Industrial Cube -->
+  <!-- Top face (Highland emerald grass & brass bevel) -->
+  <polygon points="256,88 408,166 256,244 104,166" fill="#4f9d57" />
+  <polygon points="256,104 384,170 256,232 128,170" fill="#63b566" />
+  <!-- Top power node -->
+  <polygon points="256,136 312,166 256,196 200,166" fill="#f59e0b" />
+  <polygon points="256,148 292,166 256,184 220,166" fill="#fde68a" />
+
+  <!-- Left face (Dark forged stone & iron plate) -->
+  <polygon points="104,166 256,244 256,422 104,344" fill="#2a3342" />
+  <polygon points="104,166 256,244 256,282 104,204" fill="#3a6b43" />
+  <!-- Left glowing power conduit -->
+  <polygon points="164,234 196,250 196,356 164,340" fill="#f59e0b" />
+  <polygon points="172,248 188,256 188,342 172,334" fill="#fbbf24" />
+  <!-- Left iron ore flecks -->
+  <rect x="122" y="252" width="22" height="22" fill="#475569" />
+  <rect x="214" y="314" width="24" height="24" fill="#475569" />
+
+  <!-- Right face (Shadowed slate & cyan-amber core) -->
+  <polygon points="408,166 256,244 256,422 408,344" fill="#1d2430" />
+  <polygon points="408,166 256,244 256,282 408,204" fill="#2e5436" />
+  <!-- Right glowing conduit -->
+  <polygon points="316,250 348,234 348,340 316,356" fill="#38bdf8" />
+  <polygon points="324,256 340,248 340,334 324,342" fill="#7dd3fc" />
+  <!-- Right ore crystal -->
+  <rect x="274" y="316" width="24" height="24" fill="#f59e0b" />
+  <rect x="364" y="252" width="20" height="20" fill="#334155" />
+
+  <!-- Crisp outer wireframe edge highlights -->
+  <polyline points="104,166 256,88 408,166 408,344 256,422 104,344 104,166" fill="none" stroke="#f59e0b" stroke-width="8" stroke-linejoin="miter" />
+  <line x1="256" y1="244" x2="256" y2="422" stroke="#0f172a" stroke-width="6" />
+</svg>

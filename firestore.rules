@@ -1,0 +1,181 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserCharacter(data, userId) {
+      return data.keys().hasAll([
+          'uid', 'displayName', 'characterName', 'level', 'credits',
+          'pickaxeTier', 'characterJson', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'displayName', 'characterName', 'level', 'credits',
+          'pickaxeTier', 'characterJson', 'createdAt', 'updatedAt'
+        ])
+        && data.uid is string
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && data.uid == userId
+        && data.displayName is string
+        && data.displayName.size() >= 1
+        && data.displayName.size() <= 64
+        && data.characterName is string
+        && data.characterName.size() >= 1
+        && data.characterName.size() <= 32
+        && data.level is number
+        && data.level >= 1
+        && data.level <= 999
+        && data.credits is number
+        && data.credits >= 0
+        && data.credits <= 99999999
+        && data.pickaxeTier is string
+        && data.pickaxeTier in ['wood', 'stone', 'iron', 'diamond', 'titanium_drill']
+        && data.characterJson is string
+        && data.characterJson.size() >= 2
+        && data.characterJson.size() <= 48000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidWorld(data, worldId) {
+      return data.keys().hasAll([
+          'id', 'ownerId', 'ownerName', 'name', 'seed', 'mode',
+          'accessMode', 'inviteCode', 'invitedUids', 'worldJson',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'ownerId', 'ownerName', 'name', 'seed', 'mode',
+          'accessMode', 'inviteCode', 'invitedUids', 'worldJson',
+          'createdAt', 'updatedAt'
+        ])
+        && data.id is string
+        && isValidId(data.id)
+        && data.id == worldId
+        && data.ownerId is string
+        && isValidId(data.ownerId)
+        && data.ownerName is string
+        && data.ownerName.size() >= 1
+        && data.ownerName.size() <= 64
+        && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 48
+        && data.seed is number
+        && data.seed >= 1
+        && data.seed <= 2147483647
+        && data.mode is string
+        && data.mode in ['survival', 'peaceful']
+        && data.accessMode is string
+        && data.accessMode in ['private', 'friends', 'public']
+        && data.inviteCode is string
+        && data.inviteCode.size() >= 4
+        && data.inviteCode.size() <= 12
+        && data.inviteCode.matches('^[A-Z0-9]+$')
+        && data.invitedUids is list
+        && data.invitedUids.size() <= 40
+        && (data.invitedUids.size() == 0 || data.invitedUids[0] is string)
+        && data.worldJson is string
+        && data.worldJson.size() >= 2
+        && data.worldJson.size() <= 350000
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // --- Collection: /users/{userId} (Account + Single Persistent Character) ---
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && isOwner(userId);
+      allow list: if false;
+
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserCharacter(incoming(), userId)
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserCharacter(incoming(), userId)
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'displayName', 'characterName', 'level', 'credits',
+          'pickaxeTier', 'characterJson', 'updatedAt'
+        ])
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time;
+
+      allow delete: if false;
+    }
+
+    // --- Collection: /worlds/{worldId} (User-Created Solo & Multiplayer Worlds) ---
+    match /worlds/{worldId} {
+      allow get: if isSignedIn()
+        && isValidId(worldId)
+        && (
+          resource == null
+          || existing().ownerId == request.auth.uid
+          || existing().accessMode == 'public'
+          || (existing().accessMode == 'friends' && request.auth.uid in existing().invitedUids)
+        );
+
+      allow list: if isSignedIn()
+        && (
+          resource.data.ownerId == request.auth.uid
+          || resource.data.accessMode == 'public'
+        );
+
+      allow create: if isVerifiedUser()
+        && isValidId(worldId)
+        && isValidWorld(incoming(), worldId)
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(worldId)
+        && existing().ownerId == request.auth.uid
+        && isValidWorld(incoming(), worldId)
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'ownerName', 'name', 'mode', 'accessMode',
+          'inviteCode', 'invitedUids', 'worldJson', 'updatedAt'
+        ])
+        && incoming().id == existing().id
+        && incoming().ownerId == existing().ownerId
+        && incoming().seed == existing().seed
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time;
+
+      allow delete: if isVerifiedUser()
+        && isValidId(worldId)
+        && existing().ownerId == request.auth.uid;
+    }
+  }
+}

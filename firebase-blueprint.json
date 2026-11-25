@@ -1,0 +1,96 @@
+{
+  "entities": {
+    "UserCharacter": {
+      "title": "UserCharacter",
+      "description": "Google-authenticated player account and their single persistent voxel character carried across all worlds.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID matching the document ID." },
+        "displayName": { "type": "string", "description": "Google account display name." },
+        "characterName": { "type": "string", "description": "Player's single persistent character name." },
+        "level": { "type": "number", "description": "Character progression level." },
+        "credits": { "type": "number", "description": "Trade credits balance." },
+        "pickaxeTier": {
+          "type": "string",
+          "enum": ["wood", "stone", "iron", "diamond", "titanium_drill"],
+          "description": "Current mining tool tier."
+        },
+        "characterJson": {
+          "type": "string",
+          "description": "Serialized character inventory, hotbar, appearance, armor, and weapon state."
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "characterName",
+        "level",
+        "credits",
+        "pickaxeTier",
+        "characterJson",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "World": {
+      "title": "World",
+      "description": "User-created voxel world supporting solo or multiplayer play, wired machines, power cables, and 12x12 claims.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique world document ID." },
+        "ownerId": { "type": "string", "description": "Firebase Auth UID of the world host/creator." },
+        "ownerName": { "type": "string", "description": "Display name of the world creator." },
+        "name": { "type": "string", "description": "World name." },
+        "seed": { "type": "number", "description": "Deterministic terrain generation seed." },
+        "mode": {
+          "type": "string",
+          "enum": ["survival", "peaceful"],
+          "description": "Per-world gameplay mode."
+        },
+        "accessMode": {
+          "type": "string",
+          "enum": ["private", "friends", "public"],
+          "description": "Multiplayer access visibility."
+        },
+        "inviteCode": { "type": "string", "description": "Shareable 6-character world invite code." },
+        "invitedUids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Authorized friend UIDs."
+        },
+        "worldJson": {
+          "type": "string",
+          "description": "Serialized voxel deltas, machines, power cables, storage inventory, and 12x12 claims."
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "ownerName",
+        "name",
+        "seed",
+        "mode",
+        "accessMode",
+        "inviteCode",
+        "invitedUids",
+        "worldJson",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserCharacter" },
+      "description": "Owner-private persistent character profile keyed by Firebase Auth UID."
+    },
+    "/worlds/{worldId}": {
+      "schema": { "$ref": "#/entities/World" },
+      "description": "User-created worlds owned by ownerId, readable by owner or public/invited players."
+    }
+  }
+}

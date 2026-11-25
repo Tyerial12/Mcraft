@@ -1,0 +1,6 @@
+{
+  "name": "AetherCraft: Voxel Highlands",
+  "description": "A 3D co-op voxel block-building and steampunk highlands RPG with sunlit Minecraft-style terrain, wilderness construction, region weather, a 2D pixelated minimap, real-time WebSocket multiplayer across every game mode, turn-based squad combat, custom skills, forging, and Firebase cloud saves.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
